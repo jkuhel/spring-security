@@ -4,36 +4,7 @@
 This section demonstrates how to use Spring Security's Test support to test method-based security.
 We first introduce a `MessageService` that requires the user to be authenticated to be able to access it:
 
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-public class HelloMessageService implements MessageService {
-
-	@PreAuthorize("authenticated")
-	public String getMessage() {
-		Authentication authentication = SecurityContextHolder.getContext()
-			.getAuthentication();
-		return "Hello " + authentication;
-	}
-}
-----
-
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-class HelloMessageService : MessageService {
-    @PreAuthorize("authenticated")
-    fun getMessage(): String {
-        val authentication: Authentication = SecurityContextHolder.getContext().authentication
-        return "Hello $authentication"
-    }
-}
-----
-======
+include-code::./HelloMessageService[tag=authenticated,indent=0]
 
 The result of `getMessage` is a `String` that says "`Hello`" to the current Spring Security `Authentication`.
 The following listing shows example output:
