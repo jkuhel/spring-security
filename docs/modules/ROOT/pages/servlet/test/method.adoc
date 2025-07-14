@@ -159,128 +159,21 @@ We now see an option that allows the most flexibility.
 We can create our own annotation that uses the `@WithSecurityContext` to create any `SecurityContext` we want.
 For example, we might create an annotation named `@WithMockCustomUser`:
 
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-@Retention(RetentionPolicy.RUNTIME)
-@WithSecurityContext(factory = WithMockCustomUserSecurityContextFactory.class)
-public @interface WithMockCustomUser {
-
-	String username() default "rob";
-
-	String name() default "Rob Winch";
-}
-----
-
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-@Retention(AnnotationRetention.RUNTIME)
-@WithSecurityContext(factory = WithMockCustomUserSecurityContextFactory::class)
-annotation class WithMockCustomUser(val username: String = "rob", val name: String = "Rob Winch")
-----
-======
+include-code::./WithMockCustomUser[tag=snippet,indent=0]
 
 You can see that `@WithMockCustomUser` is annotated with the `@WithSecurityContext` annotation.
 This is what signals to Spring Security test support that we intend to create a `SecurityContext` for the test.
 The `@WithSecurityContext` annotation requires that we specify a `SecurityContextFactory` to create a new `SecurityContext`, given our `@WithMockCustomUser` annotation.
 The following listing shows our `WithMockCustomUserSecurityContextFactory` implementation:
 
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-public class WithMockCustomUserSecurityContextFactory
-	implements WithSecurityContextFactory<WithMockCustomUser> {
-	@Override
-	public SecurityContext createSecurityContext(WithMockCustomUser customUser) {
-		SecurityContext context = SecurityContextHolder.createEmptyContext();
-
-		CustomUserDetails principal =
-			new CustomUserDetails(customUser.name(), customUser.username());
-		Authentication auth =
-			UsernamePasswordAuthenticationToken.authenticated(principal, "password", principal.getAuthorities());
-		context.setAuthentication(auth);
-		return context;
-	}
-}
-----
-
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-class WithMockCustomUserSecurityContextFactory : WithSecurityContextFactory<WithMockCustomUser> {
-    override fun createSecurityContext(customUser: WithMockCustomUser): SecurityContext {
-        val context = SecurityContextHolder.createEmptyContext()
-        val principal = CustomUserDetails(customUser.name, customUser.username)
-        val auth: Authentication =
-            UsernamePasswordAuthenticationToken(principal, "password", principal.authorities)
-        context.authentication = auth
-        return context
-    }
-}
-----
-======
+include-code::./WithMockCustomUserSecurityContextFactory[tag=snippet,indent=0]
 
 We can now annotate a test class or a test method with our new annotation and Spring Security's `WithSecurityContextTestExecutionListener` to ensure that our `SecurityContext` is populated appropriately.
 
 When creating your own `WithSecurityContextFactory` implementations, it is nice to know that they can be annotated with standard Spring annotations.
 For example, the `WithUserDetailsSecurityContextFactory` uses the `@Autowired` annotation to acquire the `UserDetailsService`:
 
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-final class WithUserDetailsSecurityContextFactory
-	implements WithSecurityContextFactory<WithUserDetails> {
-
-	private UserDetailsService userDetailsService;
-
-	@Autowired
-	public WithUserDetailsSecurityContextFactory(UserDetailsService userDetailsService) {
-		this.userDetailsService = userDetailsService;
-	}
-
-	public SecurityContext createSecurityContext(WithUserDetails withUser) {
-		String username = withUser.value();
-		Assert.hasLength(username, "value() must be non-empty String");
-		UserDetails principal = userDetailsService.loadUserByUsername(username);
-		Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(principal, principal.getPassword(), principal.getAuthorities());
-		SecurityContext context = SecurityContextHolder.createEmptyContext();
-		context.setAuthentication(authentication);
-		return context;
-	}
-}
-----
-
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-class WithUserDetailsSecurityContextFactory @Autowired constructor(private val userDetailsService: UserDetailsService) :
-    WithSecurityContextFactory<WithUserDetails> {
-    override fun createSecurityContext(withUser: WithUserDetails): SecurityContext {
-        val username: String = withUser.value
-        Assert.hasLength(username, "value() must be non-empty String")
-        val principal = userDetailsService.loadUserByUsername(username)
-        val authentication: Authentication =
-            UsernamePasswordAuthenticationToken(principal, principal.password, principal.authorities)
-        val context = SecurityContextHolder.createEmptyContext()
-        context.authentication = authentication
-        return context
-    }
-}
-----
-======
+include-code::./WithUserDetailsSecurityContextFactory[tag=snippet,indent=0]
 
 By default, the `SecurityContext` is set during the `TestExecutionListener.beforeTestMethod` event.
 This is the equivalent of happening before JUnit's `@Before`.
