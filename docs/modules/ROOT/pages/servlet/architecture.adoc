@@ -51,28 +51,9 @@ image::{figures}/delegatingfilterproxy.png[]
 The following listing shows pseudo code of `DelegatingFilterProxy`:
 
 .`DelegatingFilterProxy` Pseudo Code
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) {
-	Filter delegate = getFilterBean(someBeanName); // <1>
-	delegate.doFilter(request, response); // <2>
-}
-----
 
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
-	val delegate: Filter = getFilterBean(someBeanName) // <1>
-	delegate.doFilter(request, response) // <2>
-}
-----
-======
+include-code::./SampleDelegatingFilterProxy[tag=dofilter,indent=0]
+
 <1> Lazily get Filter that was registered as a Spring Bean.
 For the example in <<servlet-delegatingfilterproxy-figure>> `delegate` is an instance of __Bean Filter~0~__.
 <2> Delegate work to the Spring Bean.
@@ -155,58 +136,7 @@ However, there are times that it is beneficial to know the ordering, if you want
 These security filters are most often declared using an javadoc:org.springframework.security.config.annotation.web.builders.HttpSecurity[`HttpSecurity`] instance.
 To exemplify the above paragraph, let's consider the following security configuration:
 
-[tabs]
-======
-Java::
-+
-[source,java,role="primary"]
-----
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(Customizer.withDefaults())
-            .httpBasic(Customizer.withDefaults())
-            .formLogin(Customizer.withDefaults())
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().authenticated()
-            );
-
-        return http.build();
-    }
-
-}
-----
-
-Kotlin::
-+
-[source,kotlin,role="secondary"]
-----
-import org.springframework.security.config.web.servlet.invoke
-
-@Configuration
-@EnableWebSecurity
-class SecurityConfig {
-
-    @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http {
-            csrf { }
-            httpBasic { }
-            formLogin { }
-            authorizeHttpRequests {
-                authorize(anyRequest, authenticated)
-            }
-        }
-        return http.build()
-    }
-
-}
-----
-======
+include-code::./SecurityConfig[tag=snippet,indent=0]
 
 The above configuration will result in the following `Filter` ordering:
 
