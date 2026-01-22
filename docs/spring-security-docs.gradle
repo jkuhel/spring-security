@@ -4,6 +4,7 @@ plugins {
 	id 'io.spring.convention.repository'
 	id 'security-kotlin'
 	id 'java-toolchain'
+	id 'javadoc-warnings-error'
 	id 'test-compile-target-jdk25'
 }
 
